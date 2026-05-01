@@ -1,0 +1,28 @@
+manifest:
+  defaults:
+    revision: v0.3
+  remotes:
+    - name: zmkfirmware
+      url-base: https://github.com/zmkfirmware
+    - name: petejohanson
+      url-base: https://github.com/petejohanson/
+    - name: caksoylar
+      url-base: https://github.com/caksoylar
+    - name: prospector
+      url-base: https://github.com/t-ogura
+  projects:
+    - name: zmk
+      remote: zmkfirmware
+      import: app/west.yml
+    - name: cirque-input-module
+      remote: petejohanson
+      revision: main
+    - name: zmk-rgbled-widget
+      remote: caksoylar
+      revision: main
+    - name: prospector-zmk-module
+      remote: prospector
+      revision: v2.0.0
+      path: modules/prospector-zmk-module
+  self:
+    path: config
