@@ -1,0 +1,209 @@
+/*
+ * macOS-optimized ZMK keymap
+ * Target: Corne-like 42-key split, 3x6 + 3 thumbs
+ *
+ * Design:
+ * - QWERTY base
+ * - Conservative home-row mods
+ * - Space-hold = NAV
+ * - Enter-hold = SYM
+ * - Tab-hold = APP
+ * - Esc-hold = WIN
+ * - macOS GUI = Command, ALT = Option, CTRL = Control
+ */
+
+#include <behaviors.dtsi>
+#include <dt-bindings/zmk/keys.h>
+#include <dt-bindings/zmk/bt.h>
+
+/ {
+    chosen {
+        zmk,matrix-transform = &default_transform;
+    };
+
+    combos {
+        compatible = "zmk,combos";
+
+        combo_esc {
+            timeout-ms = <35>;
+            key-positions = <0 1>;
+            bindings = <&kp ESC>;
+        };
+
+        combo_tab {
+            timeout-ms = <35>;
+            key-positions = <1 2>;
+            bindings = <&kp TAB>;
+        };
+
+        combo_caps_word {
+            timeout-ms = <35>;
+            key-positions = <20 21>;
+            bindings = <&caps_word>;
+        };
+
+        combo_del {
+            timeout-ms = <35>;
+            key-positions = <31 32>;
+            bindings = <&kp DEL>;
+        };
+    };
+
+    behaviors {
+        /*
+         * Home-row mods.
+         *
+         * balanced:
+         *   good compromise for typing + shortcuts
+         *
+         * require-prior-idle-ms:
+         *   suppresses HRM during fast typing streaks
+         *
+         * quick-tap-ms:
+         *   makes repeated letters more reliable
+         */
+        hm: homerow_mods {
+            compatible = "zmk,behavior-hold-tap";
+            #binding-cells = <2>;
+            flavor = "balanced";
+            tapping-term-ms = <185>;
+            quick-tap-ms = <150>;
+            require-prior-idle-ms = <125>;
+            bindings = <&kp>, <&kp>;
+        };
+
+        /*
+         * Layer-tap for thumbs and outer utility keys.
+         * Slightly longer than HRM because thumb holds are intentional.
+         */
+        lt: layer_tap {
+            compatible = "zmk,behavior-hold-tap";
+            #binding-cells = <2>;
+            flavor = "balanced";
+            tapping-term-ms = <220>;
+            quick-tap-ms = <175>;
+            require-prior-idle-ms = <100>;
+            bindings = <&mo>, <&kp>;
+        };
+    };
+
+    keymap {
+        compatible = "zmk,keymap";
+
+        /*
+         * Layer 0: BASE
+         *
+         * Left HRM:
+         *   A = Command
+         *   S = Option
+         *   D = Control
+         *   F = Shift
+         *
+         * Right HRM mirrored:
+         *   J = Shift
+         *   K = Control
+         *   L = Option
+         *   ; = Command
+         *
+         * This keeps macOS shortcuts ergonomic:
+         *   Cmd-C/V/W/Q/T
+         *   Cmd-Opt arrows/workspace bindings
+         *   Ctrl for terminal/tmux/vim
+         */
+        base {
+            bindings = <
+                &kp Q        &kp W        &kp E        &kp R        &kp T        &kp Y          &kp U        &kp I        &kp O        &kp P        &kp LBKT     &kp RBKT
+                &hm LGUI A   &hm LALT S   &hm LCTRL D  &hm LSHIFT F &kp G        &kp H          &hm RSHIFT J &hm RCTRL K  &hm RALT L   &hm RGUI SEMI &kp SQT      &kp BSLH
+                &kp Z        &kp X        &kp C        &kp V        &kp B        &kp N          &kp M        &kp COMMA    &kp DOT      &kp FSLH     &kp MINUS    &kp EQUAL
+
+                                            &lt 4 ESC    &lt 1 SPACE  &kp LCTRL     &kp BSPC     &lt 2 RET    &lt 3 TAB
+            >;
+        };
+
+        /*
+         * Layer 1: NAV
+         * Hold SPACE.
+         *
+         * Optimized for:
+         * - Neovim-style movement
+         * - shell line editing
+         * - browser/editor navigation
+         */
+        nav {
+            bindings = <
+                &kp ESC      &kp LC(Q)    &kp LC(W)    &kp LC(E)    &kp LC(R)    &kp LC(T)      &kp HOME     &kp PG_DN    &kp PG_UP    &kp END      &kp INS      &kp PSCRN
+                &kp LGUI     &kp LALT     &kp LCTRL    &kp LSHIFT   &kp TAB      &kp LEFT       &kp DOWN     &kp UP       &kp RIGHT    &kp DEL      &kp BSPC     &kp RET
+                &kp LG(Z)    &kp LG(X)    &kp LG(C)    &kp LG(V)    &kp LG(A)    &kp LC(A)      &kp LC(E)    &kp LA(B)    &kp LA(F)    &kp LC(K)    &kp LC(U)    &kp LC(W)
+
+                                            &trans       &trans       &trans       &trans       &trans       &trans
+            >;
+        };
+
+        /*
+         * Layer 2: SYM
+         * Hold ENTER.
+         *
+         * Bracket-heavy and shell-heavy placement:
+         * - left hand = brackets / grouping
+         * - right hand = operators / shell punctuation
+         */
+        sym {
+            bindings = <
+                &kp EXCL     &kp AT       &kp HASH     &kp DLLR     &kp PRCNT    &kp CARET      &kp AMPS     &kp ASTRK    &kp PIPE     &kp TILDE    &kp GRAVE    &kp BSLH
+                &kp LPAR     &kp RPAR     &kp LBKT     &kp RBKT     &kp LBRC     &kp RBRC       &kp EQUAL    &kp PLUS     &kp MINUS    &kp UNDER    &kp COLON    &kp SEMI
+                &kp LT       &kp GT       &kp COMMA    &kp DOT      &kp FSLH     &kp QMARK      &kp DQT      &kp SQT      &kp DOLLAR   &kp HASH     &kp AMPS     &kp PIPE
+
+                                            &trans       &trans       &trans       &trans       &trans       &trans
+            >;
+        };
+
+        /*
+         * Layer 3: APP
+         * Hold TAB.
+         *
+         * App switching and app launch shortcuts.
+         *
+         * Recommended macOS mappings:
+         * - Cmd-Tab / Cmd-Shift-Tab: native app switcher
+         * - Cmd-`: switch windows in same app
+         * - Hyper-style combos can be bound in Raycast / Alfred / Keyboard Maestro.
+         */
+        app {
+            bindings = <
+                &kp LG(N1)   &kp LG(N2)   &kp LG(N3)   &kp LG(N4)   &kp LG(N5)   &kp LG(N6)     &kp C_PREV   &kp C_PP     &kp C_NEXT   &kp C_MUTE   &kp C_VOL_DN &kp C_VOL_UP
+                &kp LG(TAB)  &kp LG(LS(TAB)) &kp LG(GRAVE) &kp LG(SPACE) &kp LG(Q) &kp LG(H)      &kp LG(N1)   &kp LG(N2)   &kp LG(N3)   &kp LG(N4)   &kp LG(N5)   &kp LG(N6)
+                &kp LG(Z)    &kp LG(X)    &kp LG(C)    &kp LG(V)    &kp LG(A)    &kp LG(F)      &bt BT_SEL 0 &bt BT_SEL 1 &bt BT_SEL 2 &bt BT_SEL 3 &bt BT_CLR   &bootloader
+
+                                            &trans       &trans       &trans       &trans       &trans       &trans
+            >;
+        };
+
+        /*
+         * Layer 4: WIN / WORKSPACE
+         * Hold ESC.
+         *
+         * macOS window management:
+         * These are intentionally "shortcut emitters".
+         *
+         * Bind them in:
+         * - Rectangle
+         * - Aerospace
+         * - yabai
+         * - Amethyst
+         * - Raycast hotkeys
+         *
+         * Suggested convention:
+         * - Ctrl-Alt-Cmd + H/J/K/L = move/resize window
+         * - Ctrl-Alt-Cmd + 1..6 = move/focus workspace
+         */
+        win {
+            bindings = <
+                &kp LG(LCTRL N1) &kp LG(LCTRL N2) &kp LG(LCTRL N3) &kp LG(LCTRL N4) &kp LG(LCTRL N5) &kp LG(LCTRL N6)   &kp LG(LEFT)  &kp LG(DOWN)  &kp LG(UP)    &kp LG(RIGHT) &none        &none
+                &kp LC(LA(LG(H))) &kp LC(LA(LG(J))) &kp LC(LA(LG(K))) &kp LC(LA(LG(L))) &kp LC(LA(LG(M))) &kp LC(LA(LG(F))) &kp LC(LEFT) &kp LC(DOWN) &kp LC(UP)   &kp LC(RIGHT)&none        &none
+                &kp LC(LA(LG(N1))) &kp LC(LA(LG(N2))) &kp LC(LA(LG(N3))) &kp LC(LA(LG(N4))) &kp LC(LA(LG(N5))) &kp LC(LA(LG(N6))) &kp LG(LBKT) &kp LG(RBKT) &kp LG(MINUS)&kp LG(EQUAL)&none        &none
+
+                                            &trans       &trans       &trans       &trans       &trans       &trans
+            >;
+        };
+    };
+};
